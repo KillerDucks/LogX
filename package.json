@@ -1,0 +1,24 @@
+{
+  "name": "logxyz",
+  "version": "1.0.0",
+  "description": "A Simple Logger for any Node project / app.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node unit_tests.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KillerDucks/LogX.git"
+  },
+  "keywords": [
+    "Logger",
+    "LogXYZ",
+    "BindLabs"
+  ],
+  "author": "KillerDucks",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/KillerDucks/LogX/issues"
+  },
+  "homepage": "https://github.com/KillerDucks/LogX#readme"
+}
