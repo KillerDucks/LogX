@@ -1,5 +1,5 @@
 const net = require('net');
-
+const util = require('util')
 
 /**
  *
@@ -28,9 +28,10 @@ class Remote {
         if(this._Type == "Server")
         {
             // Server Code init
-            this.RemoteServer = net.createServer(this.HandleServerConnection.bind(this));
-            this.RemoteServer.on('error', this.HandleServerError);
-            this.RemoteServer.on('close', this.HandleServerClose);
+            this.RemoteServer = net.createServer();
+            this.RemoteServer.on('connection', this.HandleServerConnection.bind(this));
+            this.RemoteServer.on('error', this.HandleServerError.bind(this));
+            this.RemoteServer.on('close', this.HandleServerClose.bind(this));
             this.RemoteServer.listen(this._Port, this.RemoteServerListen.bind(this));
         }
         else
@@ -38,24 +39,34 @@ class Remote {
             // Client Code init
             this.RemoteClient = net.createConnection({port: this._Port}, this.RemoteServerListen.bind(this));
             this.RemoteClient.setEncoding("utf-8");
+            this.RemoteClient.on('data', this.HandleDataIn.bind(this))
             this.RemoteClient.on('error', this.HandleError.bind(this));
         }
     }
 
     InternalWriter(msg)
     {
+        if(this._Message_Stack.length == 50)
+        {
+            this._Message_Stack = [];
+            console.log(`Message Stack Reset`);
+        }
         // Write to the stack then push to the client (ADDED OBJECT DETECTION)
         this._Message_Stack.push(msg);
         let x = this._Connected_Clients.length;
-        process.stdout.write(`N ${x}\n`)
+
+        process.stdout.write(`Number Of Connected Clients -> ${x}\n`);
+
         // Fix this approach later
         if(this._Connected_Clients.length != 0)
         {
-            if(this._Connected_Clients[0])
-            {
-                this._Connected_Clients[0].write(this._Message_Stack[this._Message_Stack.length - 1]);
-            }
-        }  
+            this._Connected_Clients.forEach(client => {  
+                if(client.writable)
+                {
+                    client.write(this._Message_Stack[this._Message_Stack.length - 1]);
+                } 
+            }); 
+        }
     }
 
     CloseRemote()
@@ -91,6 +102,18 @@ class Remote {
         }
     }
 
+    HandleDataIn(data)
+    {
+        try
+        {
+            // console.log(util.inspect(JSON.parse(data), false, null, true) + '\n');
+            console.log(`[${JSON.parse(data).AppName}]\t${JSON.parse(data).Info}\n`);
+        } catch (err)
+        {
+            // console.log(data + '\n');
+        }
+    }
+
     HandleServerClose()
     {
         console.log("Server is closed");
@@ -106,8 +129,8 @@ class Remote {
         // Added the Client connection to the global scope (maybe a bad idea ???)
         this._Connected_Clients.push(connection);
 
-        console.log(this._Connected_Clients.length);
-        console.log(this._Message_Stack.length);
+        // console.log(this._Connected_Clients.length);
+        // console.log(this._Message_Stack.length);
 
         // Send all of the stack Queue to the client (if the queue has any messages)
         if(this._Message_Stack.length != 0)
@@ -116,19 +139,20 @@ class Remote {
                 // Check if the Connection is writable
                 // if(connection.writeable)
                 // {`
-                process.stdout.write(`Number ${msg}\n`);
-                process.stdout.write(`Stack ${this._Message_Stack.length}\n`);
+                // process.stdout.write(`Number ${msg}\n`);
+                // process.stdout.write(`Stack ${this._Message_Stack.length}\n`);
                 connection.write((typeof(this._Message_Stack[msg]) == "object") ?  JSON.stringify(this._Message_Stack[msg]) : this._Message_Stack[msg]);
                 // }
             }
 
             // Send Allow to Terminate Signal
-            connection.write("SOCKTERMOKAY");
-            connection.destroy();
+            // connection.write("SOCKTERMOKAY");
+            // connection.destroy();
         }
 
         connection.on('end', () => {
-            console.log("Client Disconnected");
+            connection.end();
+            console.log("Client Sent FIN");
             // Fix this approach 
             this._Connected_Clients.pop();
         });
