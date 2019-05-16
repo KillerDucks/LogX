@@ -66,6 +66,7 @@ class Logger {
             // Initial Setup of a Remote Client setup
             if(this._storage._Type == 4)
             {
+                this.Log({Namespace: "LogXYZ_Info", Info: "This feature is currently under development and is classed as Experimental, please use with caution"});
                 this.RemoteClient = new Remote("Client");
             }
 
@@ -74,6 +75,7 @@ class Logger {
             // Initial Setup of a Remote Server setup
             if(this._storage._Type == 5)
             {
+                this.Log({Namespace: "LogXYZ_Info", Info: "This feature is currently under development and is classed as Experimental, please use with caution"});
                 this.RemoteServer = new Remote("Server");
             }
         }
