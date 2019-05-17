@@ -17,16 +17,36 @@ class Logger {
      * @param {Number} _timeFormat
      * @memberof Logger
      */
-    constructor(_storage = new Structs.StorageClass(3), _ID_Gen = this.GenerateUID, _timeFormat = 0, _appName = "LogX", _log_Folder = "LogX"){
+    constructor(_storage = new Structs.StorageClass(3), _Config = { _ID_Gen: this.GenerateUID, _timeFormat: 0, _appName: "LogX", _log_Folder: "LogX", _EXP_Options: undefined }){
         this._storage = _storage;
-        this._timeFormat = _timeFormat;
-        this._appName = _appName;
-        this._ID_Gen = _ID_Gen;
-        this._log_Folder = _log_Folder;
+        this._Config = _Config;
+        this._timeFormat = _Config._timeFormat;
+        this._appName = _Config._appName;
+        this._ID_Gen = _Config._ID_Gen;
+        this._log_Folder = _Config._log_Folder;
+        this._EXP_Options = _Config._EXP_Options;
+        this.PrintAllOptions();
         this.LoggerInit();       
     }
 
+    PrintAllOptions()
+    {
+        // This will print out all options chosen when init the class
+        for(let option in this._Config)
+        {
+            this.EXP_Write2Std(`${option} => ${this._Config[option]}`, "Debug");
+        }
+    }
+
     LoggerInit(){
+        // EXP Options
+        if(this._EXP_Options == undefined)
+        {
+            this._EXP_Options = {}
+            this._EXP_Options.ColourEnable = true;
+            this._EXP_Options.Colour = "Rainbow";
+        }
+
         // Handles directory setup plus stream handling (for JSON)
         if(this._storage._Type == 1 || this._storage._Type == 2)
         {
@@ -150,7 +170,46 @@ class Logger {
                 break;
         }
         // Log to the Console (Also Counts as option 3 [ConsoleOnly])
-        process.stdout.write(currentLog + "\n");
+        if(this._EXP_Options.ColourEnable)
+        {
+            this.EXP_Write2Std(data, this._EXP_Options.Colour);
+        } 
+        else
+        {
+            process.stdout.write(currentLog + "\n");
+        }
+    }
+
+    EXP_Write2Std(data, colour)
+    {
+        let Reset =  "\u001b[0m"
+        let colour16 = {
+            "Black": "\u001b[30;1m",
+            "Red": "\u001b[31;1m",
+            "Green": "\u001b[32;1m",
+            "Yellow": "\u001b[33;1m",
+            "Blue": "\u001b[34;1m",
+            "Magenta": "\u001b[35;1m",
+            "Cyan": "\u001b[36;1m",
+            "Debug": "\u001b[36;1m",
+            "White": "\u001b[37;1m"
+        };
+        if(colour == "Rainbow")
+        {
+            // Get Info of Message
+            let infoTemp = data.Info;
+            let infoNew = [];
+            infoTemp.split("").forEach(char => {
+                let x = Math.floor(Math.random() * (+Object.keys(colour16).length - +0)) + +0;
+                infoNew.push(`${colour16[Object.keys(colour16)[x]]}${char}`);
+            });
+            data.Info = infoNew.join("")
+            process.stdout.write(`${data.TimeStamp} [${this._appName}] => [${data.Namespace}]\t ${data.Info}${Reset}\n`);
+        } 
+        else
+        {
+            process.stdout.write(`${colour16[colour]}${data}${Reset}\n`);
+        }
     }
 
 
