@@ -1,0 +1,11 @@
+# Ignore if there is a copy of node_modules
+node_modules
+
+# Ignore if there is a copy if .vscode
+.vscode
+
+# Ignore the Test Files
+Tests
+
+# Ignore other files
+sandbox.js
