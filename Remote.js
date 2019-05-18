@@ -8,11 +8,12 @@ const util = require('util')
  */
 class Remote {
 
-    constructor(_Type = "Server", _Port = 9012, _ID_Gen = this.GenerateUID, _Checksum = false)
+    constructor(_Type = "Server", _IP = "127.0.0.1", _Port = 9012, _ID_Gen = this.GenerateUID, _Checksum = false)
     {
         // Must be an easier way than this
         this._Type = _Type;
         this._Port = _Port;
+        this._IP = _IP;
         this._ID_Gen = _ID_Gen;
         this._Checksum = _Checksum;
 
@@ -37,7 +38,7 @@ class Remote {
         else
         {
             // Client Code init
-            this.RemoteClient = net.createConnection({port: this._Port}, this.RemoteServerListen.bind(this));
+            this.RemoteClient = net.createConnection({port: this._Port, host: this._IP}, this.RemoteServerListen.bind(this));
             this.RemoteClient.setEncoding("utf-8");
             this.RemoteClient.on('data', this.HandleDataIn.bind(this))
             this.RemoteClient.on('error', this.HandleError.bind(this));
@@ -158,7 +159,7 @@ class Remote {
         });
 
         connection.on("destroy", () => {
-
+            console.log("We are hit");
         });
 
         connection.on('disconnect', () =>{
@@ -170,7 +171,9 @@ class Remote {
 
     HandleError(error)
     {
-        throw error;
+        console.log("Client Connection Error!");
+        console.log(error);
+        // throw error;
     }
 
     HandleServerError(error)
