@@ -4,7 +4,8 @@
   "description": "A Simple Logger for any Node project / app.",
   "main": "index.js",
   "scripts": {
-    "test": "node unit_tests.js"
+    "test": "node Tests/unit_tests.js",
+    "start_client": "node DockerRemoteClient.js"
   },
   "repository": {
     "type": "git",
