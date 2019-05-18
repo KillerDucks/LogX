@@ -20,12 +20,11 @@ class Logger {
     constructor(_storage = new Structs.StorageClass(3), _Config = { _ID_Gen: this.GenerateUID, _timeFormat: 0, _appName: "LogX", _log_Folder: "LogX", _EXP_Options: undefined }){
         this._storage = _storage;
         this._Config = _Config;
-        this._timeFormat = _Config._timeFormat;
-        this._appName = _Config._appName;
-        this._ID_Gen = _Config._ID_Gen;
-        this._log_Folder = _Config._log_Folder;
-        this._EXP_Options = _Config._EXP_Options;
-        this.PrintAllOptions();
+        this._timeFormat = (_Config._timeFormat == null) ? 0 : _Config._timeFormat;
+        this._appName = (_Config._appName == null) ? "LogXYZ" : _Config._appName;
+        this._ID_Gen = (_Config._ID_Gen == null) ? this.GenerateUID : _Config._ID_Gen;
+        this._log_Folder = (_Config._log_Folder == null) ? "LogXYZ" : _Config._log_Folder;
+        this._EXP_Options = (_Config._EXP_Options == null) ? null : _Config._EXP_Options;        
         this.LoggerInit();       
     }
 
@@ -34,18 +33,36 @@ class Logger {
         // This will print out all options chosen when init the class
         for(let option in this._Config)
         {
-            this.EXP_Write2Std(`${option} => ${this._Config[option]}`, "Debug");
+            if(typeof(this._Config[option]) == "function")
+            {
+                this.EXP_Write2Std(`======>\t\t\t\t\t${option} => Function(.........)`, "Debug");
+            }
+            else if(typeof(this._Config[option])  == "object")
+            {
+                this.EXP_Write2Std(`======>\t\t\t\t\t${option} => ${JSON.stringify(this._Config[option], null)}`, "Debug");
+            }
+            else
+            {
+                this.EXP_Write2Std(`======>\t\t\t\t\t${option} => ${this._Config[option]}`, "Debug");
+            }
         }
     }
 
     LoggerInit(){
+        // Prints EXP Welcome Message/Info
+        this.EXP_Write2Std(`\t\t\t\t\t\t\t[LogXYZ v1.2.0 - Branch: SuperExperimental]\n\n`, "Red");
+        
         // EXP Options
         if(this._EXP_Options == undefined)
         {
             this._EXP_Options = {}
             this._EXP_Options.ColourEnable = true;
             this._EXP_Options.Colour = "Rainbow";
+            this.EXP_Write2Std(`[LogXYZ v1.2.0 - Branch: SuperExperimental] Loaded default EXP Options`, "Red");
         }
+
+        // Prints all the options for the logger
+        this.PrintAllOptions();
 
         // Handles directory setup plus stream handling (for JSON)
         if(this._storage._Type == 1 || this._storage._Type == 2)
@@ -87,7 +104,7 @@ class Logger {
             if(this._storage._Type == 4)
             {
                 this.Log({Namespace: "LogXYZ_Info", Info: "This feature is currently under development and is classed as Experimental, please use with caution"});
-                this.RemoteClient = new Remote("Client");
+                this.RemoteClient = new Remote("Client", (this._storage._Connection == null) ? "127.0.0.1" : this._storage._Connection);
             }
 
 //  Possible to use `else` here might refactor later on
@@ -162,7 +179,7 @@ class Logger {
 
             case 5:
                 // Remote Link [Server]
-                this.RemoteServer.InternalWriter(JSON.stringify(data) + "\n");
+                (data.Namespace == "LogXYZ_Info") ? undefined : this.RemoteServer.InternalWriter(JSON.stringify(data) + "\n");
                 break;
         
             default:
@@ -208,7 +225,14 @@ class Logger {
         } 
         else
         {
-            process.stdout.write(`${colour16[colour]}${data}${Reset}\n`);
+            if(typeof(data) == "string")
+            {
+                process.stdout.write(`${colour16[colour]}${data}${Reset}\n`);
+            }
+            else
+            {
+                process.stdout.write(`${data.TimeStamp} [${this._appName}] => [${data.Namespace}]\t ${colour16[colour]}${data.Info}${Reset}\n`);
+            }
         }
     }
 
