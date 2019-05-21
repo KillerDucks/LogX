@@ -56,7 +56,8 @@ class Remote {
         this._Message_Stack.push(msg);
         let x = this._Connected_Clients.length;
 
-        process.stdout.write(`Number Of Connected Clients -> ${x}\n`);
+        // Debug
+        // process.stdout.write(`Number Of Connected Clients -> ${x}\n`);
 
         // Fix this approach later
         if(this._Connected_Clients.length != 0)
